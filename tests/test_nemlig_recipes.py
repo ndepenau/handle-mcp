@@ -99,6 +99,20 @@ async def test_recipe_has_photo_intro_and_method(store):
     assert r.tip is None  # nemlig sends "" when there is no tip
 
 
+async def test_recipe_text_keeps_the_recipes_own_persons(store, monkeypatch):
+    row = {"ingredientTitle": "Laks", "item": {"product": {"id": "1", "title": "Laks"}}}
+
+    async def api(_method, url, **_kwargs):
+        if url.endswith("/recipeProductDialog"):
+            return {"includedProducts": [row], "servings": 6}
+        return {"servings": 4, "ingredients": [{"ingredients": [{"text": "600 g laksefilet"}]}]}
+
+    monkeypatch.setattr(store, "_api", api)
+    r = await store.recipe(KEBAB, 6)
+    assert (r.persons, r.ingredients_persons) == (6, 4)  # products for 6, text for 4
+    assert r.ingredients == ["600 g laksefilet"]
+
+
 async def test_recipe_without_photo_or_method(store, monkeypatch):
     details = {
         "images": [{"source": "http://insecure.example/x.jpg"}, {"source": None}],

@@ -158,6 +158,9 @@ class RecipesMixin:
                 for i in group.get("ingredients") or []
                 if i.get("text")
             ],
+            # recipeDetails has no servings parameter: its text is always for the recipe's own
+            # servings, while the products follow `persons` (live, 2026-11-05).
+            ingredients_persons=int(details["servings"]) if details.get("servings") else None,
             method=_method(details),
             tip=_text(details.get("tip")),
             items=items,
